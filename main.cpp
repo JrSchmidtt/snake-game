@@ -12,10 +12,33 @@ int screenSize = cellSize * cellCount;
 class Food
 {
 public:
-    Vector2 position = {5, 6}; // position of food in grid
-    void draw()
+    Vector2 position;
+    Texture2D foodTexture;
+    // constructor (called when object is created)
+    Food()
     {
-        DrawRectangle(position.x * cellSize, position.y * cellSize, cellSize, cellSize, darkGreen);
+        Image foodImage = LoadImage("assets/food.png");
+        foodTexture = LoadTextureFromImage(foodImage);
+        UnloadImage(foodImage); // unload image from memory (RAM) after texture was created.
+        position = RandomPosition();
+    }
+    // destructor (called when object is destroyed)
+    ~Food()
+    {
+        UnloadTexture(foodTexture);
+    }
+    // Render food on screen
+    void Render()
+    {
+        DrawTexture(foodTexture, position.x * cellSize, position.y * cellSize, darkGreen);
+    }
+    // Generate random position for food in grid.
+    Vector2 RandomPosition()
+    {
+        Vector2 position;
+        position.x = GetRandomValue(0, cellCount - 1);
+        position.y = GetRandomValue(0, cellCount - 1);
+        return position;
     }
 };
 
@@ -28,7 +51,7 @@ int main()
     {
         BeginDrawing();
         ClearBackground(green); // set background color
-        food.draw();           // draw food
+        food.Render();
         EndDrawing();
     }
     CloseWindow();
