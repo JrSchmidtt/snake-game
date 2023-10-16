@@ -23,17 +23,30 @@ bool eventTriggered(double interval)
     return false;
 }
 
+// Check if two vectors are equal. Returns true if they are equal, false otherwise.
+bool ElementInDeque(Vector2 element, deque<Vector2> deque)
+{
+    for (unsigned int i = 0; i < deque.size(); i++)
+    {
+        if (Vector2Equals(element, deque[i]))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 class Food
 {
 public:
     Vector2 position;
     Texture2D foodTexture;
-    Food()
+    Food(deque<Vector2> snakeBody)
     {
         Image foodImage = LoadImage("assets/food.png");
         foodTexture = LoadTextureFromImage(foodImage);
         UnloadImage(foodImage); // unload image from memory (RAM) after texture was created.
-        position = RandomPosition();
+        position = RandomPosition(snakeBody);
     }
     ~Food()
     {
@@ -43,11 +56,20 @@ public:
     {
         DrawTexture(foodTexture, position.x * cellSize, position.y * cellSize, darkGreen);
     }
-    Vector2 RandomPosition()
+    Vector2 RandomCell()
     {
         Vector2 position;
         position.x = GetRandomValue(0, cellCount - 1);
         position.y = GetRandomValue(0, cellCount - 1);
+        return position;
+    }
+    Vector2 RandomPosition(deque<Vector2> snakeBody)
+    {
+        Vector2 position = RandomCell();
+        while (ElementInDeque(position, snakeBody))
+        {
+            position = RandomCell();
+        }
         return position;
     }
 };
@@ -72,9 +94,6 @@ public:
         body.pop_back();
         body.push_front(Vector2Add(body[0], direction));
     }
-    void Move()
-    {
-    }
 };
 
 class Game
@@ -82,7 +101,7 @@ class Game
 public:
     float updateInterval = 0.2f; // interval in seconds between each update of the snake.
     Snake snake = Snake();
-    Food food = Food();
+    Food food = Food(snake.body);
     void Render()
     {
         food.Render();
@@ -93,6 +112,15 @@ public:
         if (eventTriggered(updateInterval))
         {
             snake.Update();
+            SnakeCollideWithFood();
+        }
+    }
+    void SnakeCollideWithFood()
+    {
+        if (Vector2Equals(snake.body[0], food.position))
+        {
+            cout << "Snake aet food!" << endl;
+            food.position = food.RandomPosition(snake.body);
         }
     }
 };
