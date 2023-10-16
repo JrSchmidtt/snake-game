@@ -10,6 +10,7 @@ Color darkGreen = {43, 54, 5, 255};
 int cellSize = 30;  // 30 x 30 pixels
 int cellCount = 25; // 25 x 25 cells
 int offset = 75;    // 75 pixels offset from the top and left of the screen
+int fontSize = 30;  // 30 pixels font size
 int screenSize = cellSize * cellCount;
 
 double LastUpdateTime = 0.0;
@@ -116,9 +117,27 @@ public:
     float updateInterval = 0.2f; // interval in seconds between each update of the snake.
     Snake snake = Snake();
     Food food = Food(snake.body);
-    bool running = true;
+    bool running = true; // game is running or not.
+    int score = 0;
+
+    Sound eatSound;
+    Sound collideWallSound;
+
+    Game()
+    {
+        InitAudioDevice();
+        eatSound = LoadSound("assets/sounds/eat.mp3");
+        collideWallSound = LoadSound("assets/sounds/wall.mp3");
+    }
+    ~Game()
+    {
+        UnloadSound(eatSound);
+        UnloadSound(collideWallSound);
+        CloseAudioDevice();
+    }
     void Render()
     {
+        DrawText(TextFormat("Score: %i", score), offset - 5, offset + cellSize * cellCount + 10, fontSize, darkGreen);
         food.Render();
         snake.Render();
     }
@@ -138,6 +157,8 @@ public:
         {
             food.position = food.RandomPosition(snake.body);
             snake.AddSegment = true;
+            score++;
+            PlaySound(eatSound);
         }
     }
     void CheckSnakeCollideWithWall()
@@ -167,6 +188,8 @@ public:
         snake.Reset();
         food.position = food.RandomPosition(snake.body);
         running = false;
+        score = 0;
+        PlaySound(collideWallSound);
     }
 };
 
@@ -180,6 +203,7 @@ int main()
         BeginDrawing();
         ClearBackground(green);
         DrawRectangleLinesEx(Rectangle{(float)offset - 5, (float)offset - 5, (float)cellSize * cellCount + 10, (float)cellSize * cellCount + 10}, 5.0, darkGreen);
+        DrawText("Snake Game", offset - 5, 20, fontSize, darkGreen);
         game.Render();
         game.Update();
         if (IsKeyPressed(KEY_UP) && game.snake.direction.y != 1)
