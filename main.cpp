@@ -1,6 +1,7 @@
 #include <iostream>
 #include <raylib.h>
 #include <deque>
+#include <raymath.h>
 using namespace std;
 
 Color green = {173, 204, 96, 255};
@@ -9,6 +10,20 @@ Color darkGreen = {43, 54, 5, 255};
 int cellSize = 30;  // 30 x 30 pixels
 int cellCount = 25; // 25 x 25 cells
 int screenSize = cellSize * cellCount;
+
+double LastUpdateTime = 0.0;
+
+// Returns the event triggered by the interval.
+bool eventTriggered(double interval)
+{
+    double currentTime = GetTime();
+    if (currentTime - LastUpdateTime >= interval)
+    {
+        LastUpdateTime = currentTime;
+        return true;
+    }
+    return false;
+}
 
 class Food
 {
@@ -43,6 +58,8 @@ class Snake
 {
 public:
     deque<Vector2> body = {Vector2{6, 9}, Vector2{5, 9}, Vector2{4, 9}};
+    Vector2 direction = Vector2{1, 0};
+    float updateInterval = 0.2f; // interval in seconds between each update of the snake.
     void Render()
     {
         for (unsigned int i = 0; i < body.size(); i++)
@@ -52,6 +69,15 @@ public:
             Rectangle segment = Rectangle{x, y, static_cast<float>(cellSize), static_cast<float>(cellSize)};
             DrawRectangleRounded(segment, 0.5, 6, darkGreen);
         }
+    }
+    void Update()
+    {
+        body.pop_back();
+        body.push_front(Vector2Add(body[0], direction));
+    }
+    void Move()
+    {
+
     }
 };
 
@@ -67,6 +93,26 @@ int main()
         ClearBackground(green);
         food.Render();
         snake.Render();
+        if (eventTriggered(snake.updateInterval))
+        {
+            snake.Update();
+        }
+        if (IsKeyPressed(KEY_UP) && snake.direction.y != 1)
+        {
+            snake.direction = Vector2{0, -1};
+        }
+        if (IsKeyPressed(KEY_DOWN) && snake.direction.y != -1)
+        {
+            snake.direction = Vector2{0, 1};
+        }
+        if (IsKeyPressed(KEY_LEFT) && snake.direction.x != 1)
+        {
+            snake.direction = Vector2{-1, 0};
+        }
+        if (IsKeyPressed(KEY_RIGHT) && snake.direction.x != -1)
+        {
+            snake.direction = Vector2{1, 0};
+        }
         EndDrawing();
     }
     CloseWindow();
