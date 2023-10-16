@@ -1,5 +1,6 @@
 #include <iostream>
 #include <raylib.h>
+#include <deque>
 using namespace std;
 
 Color green = {173, 204, 96, 255};
@@ -14,7 +15,6 @@ class Food
 public:
     Vector2 position;
     Texture2D foodTexture;
-    // constructor (called when object is created)
     Food()
     {
         Image foodImage = LoadImage("assets/food.png");
@@ -22,17 +22,14 @@ public:
         UnloadImage(foodImage); // unload image from memory (RAM) after texture was created.
         position = RandomPosition();
     }
-    // destructor (called when object is destroyed)
     ~Food()
     {
         UnloadTexture(foodTexture);
     }
-    // Render food on screen
     void Render()
     {
         DrawTexture(foodTexture, position.x * cellSize, position.y * cellSize, darkGreen);
     }
-    // Generate random position for food in grid.
     Vector2 RandomPosition()
     {
         Vector2 position;
@@ -42,16 +39,34 @@ public:
     }
 };
 
+class Snake
+{
+public:
+    deque<Vector2> body = {Vector2{6, 9}, Vector2{5, 9}, Vector2{4, 9}};
+    void Render()
+    {
+        for (unsigned int i = 0; i < body.size(); i++)
+        {
+            float x = body[i].x * static_cast<float>(cellSize);
+            float y = body[i].y * static_cast<float>(cellSize);
+            Rectangle segment = Rectangle{x, y, static_cast<float>(cellSize), static_cast<float>(cellSize)};
+            DrawRectangleRounded(segment, 0.5, 6, darkGreen);
+        }
+    }
+};
+
 int main()
 {
     InitWindow(screenSize, screenSize, "Snake Game");
     SetTargetFPS(60);
     Food food = Food();
+    Snake snake = Snake();
     while (WindowShouldClose() == false)
     {
         BeginDrawing();
-        ClearBackground(green); // set background color
+        ClearBackground(green);
         food.Render();
+        snake.Render();
         EndDrawing();
     }
     CloseWindow();
